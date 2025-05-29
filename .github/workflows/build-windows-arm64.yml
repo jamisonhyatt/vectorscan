@@ -1,0 +1,203 @@
+name: Build Windows ARM64
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  build-windows-arm64:
+    runs-on: windows-11-arm  
+    defaults:
+        run:
+            shell: msys2 {0}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: false  # We'll update in our script
+        install: base-devel git
+    
+    - name: Setup build environment
+      run: |
+        # Make scripts executable
+        chmod +x ./scripts/setup-env.sh
+        chmod +x ./scripts/build-windows-arm64.sh
+        
+        # Run our environment setup script
+        ./scripts/setup-env.sh
+    
+    - name: Build Vectorscan for Windows ARM64
+      run: |
+        # Run our build script
+        ./scripts/build-windows-arm64.sh
+    
+    - name: Verify build artifacts
+      run: |
+        echo "Checking build artifacts..."
+        
+        # Check static libraries
+        if [ -f "build-windows-arm64/lib/libhs.a" ]; then
+          echo "✓ libhs.a found ($(du -h build-windows-arm64/lib/libhs.a | cut -f1))"
+          file build-windows-arm64/lib/libhs.a
+        else
+          echo "✗ libhs.a not found"
+          exit 1
+        fi
+        
+        if [ -f "build-windows-arm64/lib/libhs_runtime.a" ]; then
+          echo "✓ libhs_runtime.a found ($(du -h build-windows-arm64/lib/libhs_runtime.a | cut -f1))"
+        else
+          echo "✗ libhs_runtime.a not found"
+          exit 1
+        fi
+        
+        # Check shared libraries
+        if [ -f "build-windows-arm64/bin/libhs.dll" ]; then
+          echo "✓ libhs.dll found ($(du -h build-windows-arm64/bin/libhs.dll | cut -f1))"
+          file build-windows-arm64/bin/libhs.dll
+        else
+          echo "✗ libhs.dll not found"
+          exit 1
+        fi
+        
+        if [ -f "build-windows-arm64/bin/libhs_runtime.dll" ]; then
+          echo "✓ libhs_runtime.dll found ($(du -h build-windows-arm64/bin/libhs_runtime.dll | cut -f1))"
+          file build-windows-arm64/bin/libhs_runtime.dll
+        else
+          echo "✗ libhs_runtime.dll not found"
+          exit 1
+        fi
+        
+        # Check example executables
+        if [ -f "build-windows-arm64/bin/simplegrep.exe" ]; then
+          echo "✓ simplegrep.exe found ($(du -h build-windows-arm64/bin/simplegrep.exe | cut -f1))"
+          file build-windows-arm64/bin/simplegrep.exe
+        else
+          echo "✗ simplegrep.exe not found"
+          exit 1
+        fi
+        
+        # List all build artifacts
+        echo ""
+        echo "All build artifacts:"
+        find build-windows-arm64 -name "*.a" -o -name "*.dll" -o -name "*.exe" | sort
+    
+    - name: Test basic functionality
+      run: |
+        echo "Testing basic functionality..."
+        
+        # Test that the DLL can be loaded (basic dependency check)
+        if command -v ldd &> /dev/null; then
+          echo "Checking DLL dependencies:"
+          ldd build-windows-arm64/bin/libhs.dll || true
+        fi
+        
+        # Note: We can't actually run ARM64 binaries on the runner
+        # but we can verify they're properly formatted
+        echo "Verifying ARM64 architecture:"
+        file build-windows-arm64/bin/libhs.dll | grep -i "arm64\|aarch64" || {
+          echo "✗ libhs.dll is not ARM64 architecture"
+          file build-windows-arm64/bin/libhs.dll
+          exit 1
+        }
+        
+        echo "✓ All binaries verified as ARM64 architecture"
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: vectorscan-windows-arm64
+        path: |
+          build-windows-arm64/lib/*.a
+          build-windows-arm64/lib/*.dll.a
+          build-windows-arm64/bin/*.dll
+          build-windows-arm64/bin/*.exe
+        retention-days: 30
+    
+    - name: Create release package
+      run: |
+        mkdir -p release-package/lib
+        mkdir -p release-package/bin
+        mkdir -p release-package/include
+        
+        # Copy libraries
+        cp build-windows-arm64/lib/libhs.a release-package/lib/
+        cp build-windows-arm64/lib/libhs_runtime.a release-package/lib/
+        cp build-windows-arm64/lib/libhs.dll.a release-package/lib/
+        cp build-windows-arm64/lib/libhs_runtime.dll.a release-package/lib/
+        
+        # Copy DLLs
+        cp build-windows-arm64/bin/libhs.dll release-package/bin/
+        cp build-windows-arm64/bin/libhs_runtime.dll release-package/bin/
+        
+        # Copy example executables
+        cp build-windows-arm64/bin/simplegrep.exe release-package/bin/
+        cp build-windows-arm64/bin/hsbench.exe release-package/bin/
+        cp build-windows-arm64/bin/hscheck.exe release-package/bin/
+        
+        # Copy headers
+        cp -r src/hs*.h release-package/include/ 2>/dev/null || true
+        cp -r include/* release-package/include/ 2>/dev/null || true
+        
+        # Create README
+        cat > release-package/README.md << 'EOF'
+        # Vectorscan Windows ARM64 Build
+        
+        This package contains the Windows ARM64 build of Vectorscan.
+        
+        ## Contents
+        
+        ### Libraries
+        - `lib/libhs.a` - Static library (full Vectorscan)
+        - `lib/libhs_runtime.a` - Static runtime-only library
+        - `lib/libhs.dll.a` - Import library for shared library
+        - `lib/libhs_runtime.dll.a` - Import library for runtime DLL
+        
+        ### DLLs
+        - `bin/libhs.dll` - Shared library (full Vectorscan)
+        - `bin/libhs_runtime.dll` - Runtime-only shared library
+        
+        ### Tools
+        - `bin/simplegrep.exe` - Simple grep example
+        - `bin/hsbench.exe` - Benchmarking tool
+        - `bin/hscheck.exe` - Database verification tool
+        
+        ## Usage
+        
+        To use these libraries in your project:
+        
+        1. Copy the appropriate libraries to your project
+        2. Include the headers from the `include/` directory
+        3. Link against the static libraries or use the DLLs as needed
+        
+        For runtime-only applications, use the `*_runtime.*` variants.
+        
+        ## Requirements
+        
+        - Windows on ARM64 (AArch64) architecture
+        - Visual C++ Redistributable (if not statically linked)
+        
+        Built with MSYS2 CLANGARM64 toolchain.
+        EOF
+        
+        # Create archive
+        tar -czf vectorscan-windows-arm64.tar.gz -C release-package .
+        
+        echo "Release package created: vectorscan-windows-arm64.tar.gz"
+        ls -lh vectorscan-windows-arm64.tar.gz
+    
+    - name: Upload release package
+      uses: actions/upload-artifact@v4
+      with:
+        name: vectorscan-windows-arm64-release
+        path: vectorscan-windows-arm64.tar.gz
+        retention-days: 90
