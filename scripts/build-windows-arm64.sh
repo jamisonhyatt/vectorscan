@@ -110,10 +110,6 @@ echo "Build completed successfully!"
 echo ""
 
 
-# check the architecture of the built libraries
-ldd -p lib/libhs.a | grep "file format" || echo "lib/libhs.a is not a valid static library"
-
-
 echo ""
 echo "Output files:"
 echo "  Static libraries:"
