@@ -37,6 +37,7 @@ jobs:
     
     - name: Build Vectorscan for Windows ARM64
       run: |
+        find / -iname 'libc++.dll' -type f
         # Run our build script
         ./scripts/build-windows-arm64.sh
     
@@ -115,7 +116,10 @@ jobs:
     - name: Test Hyperscan
       run: |
         echo "Running Hyperscan tests..."
-        
+
+        find / -iname 'libc++.dll' -type f
+        ./build-windows-arm64/bin/unit-hyperscan.exe;
+
         if ./build-windows-arm64/bin/unit-hyperscan.exe; then
           echo "✓ unit-hyperscan tests passed"
         else

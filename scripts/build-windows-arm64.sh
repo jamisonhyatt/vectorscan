@@ -101,8 +101,8 @@ cmake .. \
     -DCMAKE_CXX_FLAGS="-D_WIN32_WINNT=0x0A00 -DWIN32_LEAN_AND_MEAN -Wno-deprecated-declarations -Wno-error=deprecated-declarations"
 
 # Build
-echo "Building..."
 NPROC=$(nproc 2>/dev/null || echo 4)
+echo "Building with $NPROC parallel jobs..."
 mingw32-make -j$NPROC
 
 echo ""

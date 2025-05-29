@@ -12,33 +12,42 @@ fi
 
 echo "Current MSYSTEM: $MSYSTEM"
 
-# Update package database
-# echo "Updating package database..."
-pacman -Sy --noconfirm
+
+# Function to check and install packages
+install_if_missing() {
+    local package=$1
+    if ! pacman -Qi "$package" &> /dev/null; then
+        echo "Installing $package..."
+        pacman -S --noconfirm "$package"
+    else
+        echo "✓ $package is already installed"
+    fi
+}
 
 # Install MinGW-w64 ARM64 toolchain
-echo "Installing MinGW-w64 ARM64 toolchain..."
-pacman -S --noconfirm \
-    mingw-w64-clang-aarch64-gcc \
-    mingw-w64-clang-aarch64-gcc-compat \
-    mingw-w64-clang-aarch64-cmake \
-    mingw-w64-clang-aarch64-make \
-    mingw-w64-clang-aarch64-pkg-config
+echo "Checking MinGW-w64 ARM64 toolchain..."
+install_if_missing mingw-w64-clang-aarch64-gcc
+install_if_missing mingw-w64-clang-aarch64-gcc-compat
+install_if_missing mingw-w64-clang-aarch64-cmake
+install_if_missing mingw-w64-clang-aarch64-make
+install_if_missing mingw-w64-clang-aarch64-pkg-config
 
 # Install dependencies
-echo "Installing dependencies..."
-pacman -S --noconfirm \
-    mingw-w64-clang-aarch64-boost \
-    mingw-w64-clang-aarch64-sqlite3 \
-    mingw-w64-clang-aarch64-ragel \
-    mingw-w64-clang-aarch64-pcre
+echo "Checking dependencies..."
+install_if_missing mingw-w64-clang-aarch64-boost
+install_if_missing mingw-w64-clang-aarch64-sqlite3
+install_if_missing mingw-w64-clang-aarch64-ragel
+install_if_missing mingw-w64-clang-aarch64-pcre
+
+# Add ARM64 toolchain to PATH
+export PATH="/clangarm64/bin:$PATH"
 
 # Verify installation
 echo ""
 echo "Verifying installation..."
 if command -v aarch64-w64-mingw32-gcc &> /dev/null; then
-    echo "✓ ARM64 GCC found: $(which aarch64-w64-mingw32-gcc)"
-    aarch64-w64-mingw32-gcc --version | head -1
+    echo "✓ ARM64 GCC found: $(which aarch64-w64-mingw32-gcc): $(aarch64-w64-mingw32-gcc --version | head -1)"
+    
 else
     echo "✗ ARM64 GCC not found"
 fi
@@ -50,14 +59,14 @@ else
 fi
 
 if command -v cmake &> /dev/null; then
-    echo "✓ CMake found: $(which cmake)"
-    cmake --version | head -1
+    echo "✓ CMake found: $(which cmake): $(cmake --version | head -1)"
+    
 else
     echo "✗ CMake not found"
 fi
 
 if command -v ragel &> /dev/null; then
-    echo "✓ Ragel found: $(which ragel)"
+    echo "✓ Ragel found: $(which ragel): $(ragel --version | head -1)"
 else
     echo "✗ Ragel not found"
 fi
