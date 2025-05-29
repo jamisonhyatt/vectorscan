@@ -25,6 +25,8 @@ autojunk
 .libs
 bin
 build-windows-arm64
+release-package
+*.tar.gz
 
 # Merge files created by git.
 *.orig
