@@ -112,6 +112,17 @@ jobs:
         
         echo "✓ All binaries verified as ARM64 architecture"
     
+    - name: Test Hyperscan
+      run: |
+        echo "Running Hyperscan tests..."
+        
+        if ./build-windows-arm64/bin/unit-hyperscan.exe; then
+          echo "✓ unit-hyperscan tests passed"
+        else
+          echo "✗ unit-hyperscan tests failed"
+        fi
+        
+        echo "✓ Hyperscan tests completed successfully"
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:

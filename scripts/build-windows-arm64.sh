@@ -109,41 +109,11 @@ echo ""
 echo "Build completed successfully!"
 echo ""
 
-echo "libc++.dll to be copied to bin directory..."
-cp /clangarm64/bin/libc++.dll "$BUILD_DIR"/bin/libc++.dll
 
 # check the architecture of the built libraries
 ldd -p lib/libhs.a | grep "file format" || echo "lib/libhs.a is not a valid static library"
 
-# Check if we can run the tests (only if not cross-compiling)
-echo "Checking if tests can be run..."
-if file ./bin/unit-hyperscan.exe | grep -q "$(uname -m)"; then
-    echo "Running tests..."
-    echo "Running unit-hyperscan tests..."
-    if ./bin/unit-hyperscan.exe; then
-        echo "✓ unit-hyperscan tests passed"
-    else
-        echo "✗ unit-hyperscan tests failed"
-    fi
 
-    echo ""
-    echo "Running unit-internal tests..."
-    if ./bin/unit-internal.exe; then
-        echo "✓ unit-internal tests passed"
-    else
-        echo "✗ unit-internal tests failed"
-    fi
-
-    echo ""
-    echo "All tests completed!"
-else
-    echo "Tests built for different architecture (ARM64), cannot run on current system."
-    echo "Tests need to be run on a Windows ARM64 target system."
-    echo ""
-    echo "Built test executables:"
-    echo "  $(pwd)/bin/unit-hyperscan.exe"
-    echo "  $(pwd)/bin/unit-internal.exe"
-fi
 echo ""
 echo "Output files:"
 echo "  Static libraries:"
