@@ -126,7 +126,8 @@ bool checkPlatform(const hs_platform_info *p, hs_compile_error **comp_error) {
     static constexpr u32 HS_TUNE_LAST = HS_TUNE_FAMILY_ICX;
     static constexpr u32 HS_CPU_FEATURES_ALL =
         HS_CPU_FEATURES_AVX2 | HS_CPU_FEATURES_AVX512 |
-        HS_CPU_FEATURES_AVX512VBMI;
+        HS_CPU_FEATURES_AVX512VBMI | HS_CPU_FEATURES_NEON |
+        HS_CPU_FEATURES_SVE | HS_CPU_FEATURES_SVE2;
 
     if (!p) {
         return true;

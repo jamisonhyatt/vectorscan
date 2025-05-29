@@ -38,6 +38,32 @@
 
 #include "config.h"
 
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+
+// Define POSIX-like functions for Windows
+#ifndef posix_memalign
+#define posix_memalign(p, a, s) (((*(p)) = _aligned_malloc((s), (a))), *(p) ? 0 : errno)
+#endif
+
+// Handle missing types
+#ifndef ssize_t
+#ifdef _WIN64
+typedef long long ssize_t;
+#else
+typedef long ssize_t;
+#endif
+#endif
+
+// Windows path separator
+#define PATH_SEP '\\'
+#else
+#define PATH_SEP '/'
+#endif
+
 /* standard types used across ue2 */
 
 // We use the size_t type all over the place, usually defined in stddef.h.
@@ -152,7 +178,9 @@ typedef u32 ReportID;
 #endif
 
 #if !defined(RELEASE_BUILD) || defined(DEBUG)
+#ifndef PATH_SEP
 #define PATH_SEP '/'
+#endif
 #endif
 
 #if defined(DEBUG) && !defined(DEBUG_PRINTF)

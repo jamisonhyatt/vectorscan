@@ -34,7 +34,11 @@
 
 #include <string>
 #include <tuple>
+#if defined(_WIN32)
+#include <windows.h>
+#else
 #include <sys/mman.h>
+#endif
 using namespace std;
 using namespace testing;
 
@@ -635,11 +639,24 @@ TEST(OutOfBoundRead, mmap) {
     const char* pattern = "bat|cat|mat|rat|fat|sat|pat|hat|vat";
     const char* corpus = "VAt hat pat sat fat rat mat ca";
 
-    // Use mmap to reliably get corpus at the and of mapped memory region
+#if defined(_WIN32)
+    // Use VirtualAlloc to reliably get corpus at the end of mapped memory region
+    size_t buffer_len = (128<<20);
+    char* buffer = (char*) VirtualAlloc(NULL, buffer_len * 2, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    ASSERT_NE(nullptr, buffer) << "VirtualAlloc failed";
+    
+    // Free the second half to create a boundary
+    BOOL result = VirtualFree(buffer + buffer_len, buffer_len, MEM_DECOMMIT);
+    ASSERT_TRUE(result) << "VirtualFree failed";
+    
+    char* mmaped_corpus = strcpy(buffer + buffer_len - strlen(corpus) - 1, corpus);
+#else
+    // Use mmap to reliably get corpus at the end of mapped memory region
     size_t buffer_len = (128<<20);
     char* buffer = (char*) mmap(NULL, buffer_len * 2, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     munmap(buffer+buffer_len, buffer_len);
     char* mmaped_corpus = strcpy(buffer + buffer_len - strlen(corpus) - 1, corpus);
+#endif
 
     hs_error_t err;
     hs_scratch_t *scratch = nullptr;
@@ -652,7 +669,12 @@ TEST(OutOfBoundRead, mmap) {
     err = hs_free_scratch(scratch);
     ASSERT_EQ(HS_SUCCESS, err);
     hs_free_database(db);
+    
+#if defined(_WIN32)
+    VirtualFree(buffer, 0, MEM_RELEASE);
+#else
     munmap(buffer, buffer_len);
+#endif
 }
 
 } // namespace

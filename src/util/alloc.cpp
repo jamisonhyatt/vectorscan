@@ -53,15 +53,21 @@ namespace ue2 {
   #include <malloc.h>
   #include <windows.h>
 
+  #ifndef posix_memalign
   #define posix_memalign(A, B, C) ((*A = (void *)__mingw_aligned_malloc(C, B)) == nullptr)
+  #endif
 
 #elif !defined(HAVE_POSIX_MEMALIGN)
 # if defined(HAVE_MEMALIGN)
+    #ifndef posix_memalign
     #define posix_memalign(A, B, C) ((*A = (void *)memalign(B, C)) == nullptr)
+    #endif
 # elif defined(HAVE__ALIGNED_MALLOC)
     /* on Windows */
     #include <malloc.h>
+    #ifndef posix_memalign
     #define posix_memalign(A, B, C) ((*A = (void *)_aligned_malloc(C, B)) == nullptr)
+    #endif
 # else
     #error no posix_memalign or memalign aligned malloc
 # endif

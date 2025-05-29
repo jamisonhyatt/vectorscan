@@ -34,18 +34,18 @@
 #ifndef UTIL_ARCH_ARM_H_
 #define UTIL_ARCH_ARM_H_
 
-#if defined(__ARM_NEON) && (defined(ARCH_ARM32) || defined(ARCH_AARCH64))
+#if (defined(__ARM_NEON) || defined(_M_ARM64)) && (defined(ARCH_ARM32) || defined(ARCH_AARCH64))
 #define HAVE_NEON
 #define HAVE_SIMD_128_BITS
 #define CHUNKSIZE 128
 #define VECTORSIZE 16
 #endif
 
-#if defined(__ARM_FEATURE_SVE)
+#if defined(__ARM_FEATURE_SVE) && !defined(_WIN32)
 #define HAVE_SVE
 #endif
 
-#if defined(__ARM_FEATURE_SVE2)
+#if defined(__ARM_FEATURE_SVE2) && !defined(_WIN32)
 #define HAVE_SVE2
 #endif
 

@@ -67,11 +67,10 @@ u32 findDesiredStride(size_t num_lits, size_t min_len, size_t min_len_count) {
             desiredStride = min_len;
         } else if (num_lits < 800) {
             // intermediate cases
-            desiredStride = min_len - 1;
-        } else if (num_lits < 5000) {
+            desiredStride = min_len - 1;        } else if (num_lits < 5000) {
             // for larger but not huge sizes, go to stride 2 only if we have at
             // least minlen 3
-            desiredStride = std::min(min_len - 1, 2UL);
+            desiredStride = std::min(min_len - 1, static_cast<size_t>(2));
         }
     }
 

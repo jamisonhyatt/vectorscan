@@ -24,6 +24,7 @@ autojunk
 *.pyc
 .libs
 bin
+build-windows-arm64
 
 # Merge files created by git.
 *.orig

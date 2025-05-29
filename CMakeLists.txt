@@ -139,6 +139,11 @@ elseif (ARCH_IA32 OR ARCH_X86_64)
     include (${CMAKE_MODULE_PATH}/cflags-x86.cmake)
 elseif (ARCH_ARM32 OR ARCH_AARCH64)
     include (${CMAKE_MODULE_PATH}/cflags-arm.cmake)
+    # Add Windows-specific flags for ARM64
+    if(WIN32 AND ARCH_AARCH64)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_WIN32_WINNT=0x0A00")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN32_WINNT=0x0A00")
+    endif()
 elseif (ARCH_PPC64EL)
     include (${CMAKE_MODULE_PATH}/cflags-ppc64le.cmake)
 else ()
@@ -287,8 +292,18 @@ set (hs_exec_common_SRCS
 elseif (ARCH_ARM32 OR ARCH_AARCH64)
 set (hs_exec_common_SRCS
     ${hs_exec_common_SRCS}
-    src/util/arch/arm/cpuid_flags.c
     )
+if(WIN32)
+    set (hs_exec_common_SRCS
+        ${hs_exec_common_SRCS}
+        src/util/arch/arm/cpuid_flags_win.c
+        )
+else()
+    set (hs_exec_common_SRCS
+        ${hs_exec_common_SRCS}
+        src/util/arch/arm/cpuid_flags.c
+        )
+endif()
 elseif (ARCH_PPC64EL)
 set (hs_exec_common_SRCS
     ${hs_exec_common_SRCS}

@@ -1037,6 +1037,30 @@ hs_error_t HS_CDECL hs_populate_platform(hs_platform_info_t *platform);
  */
 #define HS_CPU_FEATURES_AVX512VBMI       (1ULL << 4)
 
+/**
+ * CPU features flag - ARM NEON
+ *
+ * Setting this flag indicates that the target platform supports ARM NEON
+ * (Advanced SIMD) instructions.
+ */
+#define HS_CPU_FEATURES_NEON             (1ULL << 5)
+
+/**
+ * CPU features flag - ARM SVE
+ *
+ * Setting this flag indicates that the target platform supports ARM SVE
+ * (Scalable Vector Extensions) instructions.
+ */
+#define HS_CPU_FEATURES_SVE              (1ULL << 6)
+
+/**
+ * CPU features flag - ARM SVE2
+ *
+ * Setting this flag indicates that the target platform supports ARM SVE2
+ * (Scalable Vector Extensions 2) instructions. Using SVE2 implies the use of SVE.
+ */
+#define HS_CPU_FEATURES_SVE2             (1ULL << 7)
+
 /** @} */
 
 /**
