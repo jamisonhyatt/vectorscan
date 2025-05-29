@@ -6,7 +6,6 @@ set -e
 # Add ARM64 toolchain to PATH
 export PATH="/clangarm64/bin:$PATH"
 
-
 echo "Building Vectorscan for Windows ARM64..."
 
 # Check if we're running in the right environment
@@ -109,6 +108,50 @@ echo ""
 echo "Build completed successfully!"
 echo ""
 
+# Copy required runtime DLLs to bin directory
+echo "Copying runtime DLLs..."
+BIN_DIR="$(pwd)/bin"
+mkdir -p "$BIN_DIR"
+
+# Function to find and copy DLL
+copy_dll() {
+    local dll_name="$1"
+    local dll_path=""
+    
+    # Try to find the DLL in the toolchain directories
+    if [[ -f "/clangarm64/bin/$dll_name" ]]; then
+        dll_path="/clangarm64/bin/$dll_name"
+    elif [[ -f "/mingw64/bin/$dll_name" ]]; then
+        dll_path="/mingw64/bin/$dll_name"
+    elif [[ -f "$(dirname "$ARM64_GCC")/$dll_name" ]]; then
+        dll_path="$(dirname "$ARM64_GCC")/$dll_name"
+    fi
+    
+    if [[ -n "$dll_path" && -f "$dll_path" ]]; then
+        echo "  Copying $dll_name from $dll_path"
+        cp "$dll_path" "$BIN_DIR/"
+    else
+        echo "  Warning: $dll_name not found in toolchain directories"
+    fi
+}
+
+# Copy C++ runtime DLLs based on the toolchain being used
+if [[ "$ARM64_GCC" == *"clang"* ]]; then
+    # For Clang/LLVM toolchain
+    copy_dll "libc++.dll"
+    copy_dll "libunwind.dll"
+elif [[ "$ARM64_GCC" == *"gcc"* ]]; then
+    # For GCC toolchain
+    copy_dll "libstdc++-6.dll"
+    copy_dll "libgcc_s_seh-1.dll"
+fi
+
+# Always try to copy these common runtime DLLs
+copy_dll "libwinpthread-1.dll"
+
+echo "Runtime DLL copy completed."
+echo ""
+
 
 echo ""
 echo "Output files:"
@@ -121,5 +164,8 @@ echo "    $(pwd)/bin/hs_runtime.dll"
 echo "  Import libraries:"
 echo "    $(pwd)/lib/libhs.dll.a"
 echo "    $(pwd)/lib/libhs_runtime.dll.a"
+echo "  Runtime DLLs:"
+echo "    $(pwd)/bin/*.dll (C++ runtime and dependencies)"
 echo ""
-echo "To use these libraries, copy them to your target Windows ARM64 system."
+echo "All required runtime DLLs have been copied to the bin directory."
+echo "To use these libraries, copy the entire bin/ and lib/ directories to your target Windows ARM64 system."
