@@ -3,7 +3,7 @@
 
 set -e
 
-BUILD_DIR="build-windows-arm64"
+BUILD_DIR="build"
 
 echo "Checking build artifacts..."
 

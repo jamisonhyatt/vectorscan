@@ -3,7 +3,7 @@
 
 set -e
 
-BUILD_DIR="build-windows-arm64"
+BUILD_DIR="build"
 RELEASE_DIR="release-package"
 ARCHIVE_NAME="vectorscan-windows-arm64.tar.gz"
 
@@ -101,6 +101,9 @@ EOF
 # Create archive
 echo "Creating archive..."
 tar -czf $ARCHIVE_NAME -C $RELEASE_DIR .
+
+# Clean up release directory
+rm -rf $RELEASE_DIR
 
 echo ""
 echo "Release package created: $ARCHIVE_NAME"

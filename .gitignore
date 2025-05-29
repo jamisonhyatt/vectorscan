@@ -24,7 +24,7 @@ autojunk
 *.pyc
 .libs
 bin
-build-windows-arm64
+build
 release-package
 *.tar.gz
 

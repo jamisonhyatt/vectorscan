@@ -67,7 +67,7 @@ export AR="$ARM64_AR"
 export RANLIB="$ARM64_RANLIB"
 
 # Create build directory
-BUILD_DIR="build-windows-arm64"
+BUILD_DIR="build"
 echo "Creating build directory: $BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"

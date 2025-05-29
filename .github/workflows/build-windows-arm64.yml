@@ -2,9 +2,9 @@ name: Build Windows ARM64
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, windows-develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, windows-develop ]
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
@@ -49,9 +49,9 @@ jobs:
       run: |
         set -e
         echo "Running Hyperscan tests..."
-        ./build-windows-arm64/bin/unit-hyperscan.exe
+        ./build/bin/unit-hyperscan.exe
         echo "✓ Hyperscan tests completed successfully"
-    
+
     - name: Create release package
       run: |
         ./scripts/create-release-package.sh
